@@ -19,15 +19,37 @@
 
   // ---------------- Remote ----------------
   function Remote(url, initData) {
+    // тело — JSON в text/plain: так браузер не шлёт лишний предварительный OPTIONS-запрос
     function call(action, payload) {
       return fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Telegram-Init-Data': initData },
-        body: JSON.stringify(Object.assign({ action: action }, payload || {})),
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(Object.assign({ action: action, initData: initData }, payload || {})),
+      }).catch(function () {
+        throw new Error('нет связи с сервером — проверь интернет');
       }).then(function (r) {
-        return r.json().then(function (data) {
-          if (!r.ok || data.error) throw new Error(data.error || 'HTTP ' + r.status);
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          if (!r.ok || data.error) throw new Error(data.error || 'ошибка сервера ' + r.status);
           return data;
+        });
+      });
+    }
+    function dataUrlToBlob(u) {
+      var m = /^data:([^;,]*)(;base64)?,(.*)$/.exec(u);
+      var bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]);
+      var arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: m[1] || 'application/octet-stream' });
+    }
+    // новые файлы грузим прямо в хранилище по одноразовой ссылке от сервера
+    function upload(n, f) {
+      if (f.key) return Promise.resolve({ name: f.name, type: f.type, size: f.size, key: f.key });
+      var blob = dataUrlToBlob(f.url);
+      var type = f.type || blob.type || 'application/octet-stream';
+      return call('uploadUrl', { n: n, name: f.name, type: type, size: blob.size }).then(function (r) {
+        return fetch(r.url, { method: 'PUT', headers: { 'Content-Type': type }, body: blob }).then(function (res) {
+          if (!res.ok) throw new Error('не получилось загрузить «' + f.name + '»');
+          return { name: f.name, type: type, size: blob.size, key: r.key };
         });
       });
     }
@@ -36,7 +58,11 @@
       state: function () { return call('state'); },
       register: function (name, tz) { return call('register', { name: name, tz: tz }); },
       door: function (n) { return call('door', { n: n }); },
-      answer: function (n, a) { return call('answer', { n: n, text: a.text, files: a.files }); },
+      answer: function (n, a) {
+        return Promise.all((a.files || []).map(function (f) { return upload(n, f); })).then(function (files) {
+          return call('answer', { n: n, text: a.text, files: files });
+        });
+      },
     };
   }
 

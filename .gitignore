@@ -1,0 +1,5 @@
+# тексты заданий и сервер не публикуем: тексты отдаёт функция Yandex Cloud
+content/
+server/
+.claude/
+.DS_Store

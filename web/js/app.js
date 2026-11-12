@@ -543,11 +543,18 @@
     var btn = $('send-answer');
     var wasAnswered = !!currentDoor.answer;
     btn.disabled = true;
-    api.answer(currentDoor.n, { text: text, files: draftFiles }).then(function (s) {
+    btn.textContent = draftFiles.some(function (f) { return !f.key; }) ? 'загружаю файлы…' : 'сохраняю…';
+    var n = currentDoor.n;
+    api.answer(n, { text: text, files: draftFiles }).then(function (s) {
       setState(s);
       haptic('ok');
-      currentDoor.answer = { text: text, files: draftFiles.slice() };
+      // перечитываем день: у загруженных файлов появились ключи и ссылки
+      return api.door(n).then(function (door) { currentDoor = door; return s; }, function () {
+        currentDoor.answer = { text: text, files: draftFiles.slice() }; return s;
+      });
+    }).then(function (s) {
       if (wasAnswered) { Snd.play('toggle'); toast('изменения сохранены'); renderDoor(currentDoor); fitSlides(); return; }
+      renderDoor(currentDoor); fitSlides();
       Snd.play('success');
       var last = currentDoor.n === s.doors.length;
       $('modal-title').textContent = last ? 'календарь пройден!' : pick(PHRASES.done);
@@ -557,7 +564,10 @@
       $('modal').hidden = false;
       mascots.modal.cheer(function () { mascots.modal.cheer(); });
       confetti();
-    }).catch(fail).finally(function () { if ($('send-answer')) $('send-answer').disabled = false; });
+    }).catch(function (e) {
+      fail(e);
+      if ($('send-answer')) $('send-answer').textContent = wasAnswered ? 'сохранить изменения' : 'отправить ответ';
+    }).finally(function () { if ($('send-answer')) $('send-answer').disabled = false; });
   }
 
   // пиксельное конфетти
