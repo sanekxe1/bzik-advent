@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="color-scheme" content="light only">
+  <title>бзик под ёлкой — адвент-календарь бзика</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,400&family=PT+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=13">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <!-- живой фон: снег, плавающий декор, искорки -->
+  <div id="decor" aria-hidden="true"></div>
+  <canvas id="snow" aria-hidden="true"></canvas>
+  <div class="drift" aria-hidden="true"></div>
+
+  <!-- звук -->
+  <div class="sound" id="sound">
+    <button class="sound-btn" id="btn-music" aria-label="музыка"></button>
+    <button class="sound-btn" id="btn-sfx" aria-label="звуки"></button>
+  </div>
+
+  <!-- Загрузка -->
+  <section id="screen-loading" class="screen active">
+    <div class="center-box"><div class="loader"><i></i><i></i><i></i></div></div>
+  </section>
+
+  <!-- Регистрация -->
+  <section id="screen-register" class="screen">
+    <canvas class="garland" aria-hidden="true"></canvas>
+    <div class="register">
+      <h1 class="title" data-title></h1>
+      <p class="subtitle">адвент-календарь бзика — 14 дней креативных заданий</p>
+      <div class="mascot-stage">
+        <div class="bubble" id="reg-bubble"></div>
+        <button class="mascot-btn" data-mascot="big" aria-label="маскот"></button>
+      </div>
+      <form id="register-form" autocomplete="off">
+        <label for="name-input" class="label"><span class="hl">как тебя зовут?</span></label>
+        <input id="name-input" class="input" maxlength="60" placeholder="имя и фамилия или ник" required>
+        <button class="btn btn-primary" type="submit">старт</button>
+        <p class="form-error" id="register-error" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Календарь -->
+  <section id="screen-calendar" class="screen">
+    <canvas class="garland" aria-hidden="true"></canvas>
+    <header class="cal-header">
+      <div class="cal-head-text">
+        <h1 class="title small" data-title></h1>
+        <p class="hello">привет, <b id="user-name"></b>!</p>
+      </div>
+      <div class="mascot-corner">
+        <div class="bubble small" id="cal-bubble"></div>
+        <button class="mascot-btn" data-mascot="small" aria-label="маскот"></button>
+      </div>
+    </header>
+    <div class="progress-wrap">
+      <div class="progress" id="progress" aria-label="прогресс"></div>
+      <div class="progress-row">
+        <p class="progress-text" id="progress-text"></p>
+        <button class="ach-btn" id="ach-btn"><img class="px" id="ach-btn-icon" alt=""><span>достижения</span><b id="ach-count"></b></button>
+      </div>
+    </div>
+    <div class="final" id="final" hidden>
+      <div>
+        <h2 class="title tiny">поздравляем!</h2>
+        <p>ты прошёл все 14 дней и прокачал креативное мышление. <span class="hl">с наступающим новым годом!</span></p>
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <p class="hint">новый день открывается в 00:00 по твоему времени — если в предыдущем есть ответ</p>
+  </section>
+
+  <!-- Достижения -->
+  <section id="screen-ach" class="screen">
+    <div class="door-bar">
+      <button class="back" id="ach-back" aria-label="назад">←</button>
+      <div class="door-bar-title"><span class="door-num">достижения</span><span id="ach-sub"></span></div>
+    </div>
+    <div class="ach-list" id="ach-list"></div>
+  </section>
+
+  <!-- День -->
+  <section id="screen-door" class="screen">
+    <div class="door-bar">
+      <button class="back" id="door-back" aria-label="назад">←</button>
+      <div class="door-bar-title"><span class="door-num" id="door-num"></span><span id="door-title"></span></div>
+    </div>
+    <div id="door-body"></div>
+  </section>
+
+  <!-- Окно-поздравление после ответа -->
+  <div class="modal" id="modal" hidden>
+    <canvas class="confetti" id="confetti"></canvas>
+    <div class="modal-card">
+      <button class="mascot-btn" data-mascot="modal" aria-label="маскот"></button>
+      <h2 class="title tiny" id="modal-title"></h2>
+      <p id="modal-text"></p>
+      <button class="btn btn-primary" id="modal-ok">к календарю</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <div class="debug" id="debug" hidden>
+    <span>тест</span>
+    <button id="dbg-day">+1 день</button>
+    <button id="dbg-reset">сброс</button>
+  </div>
+
+  <script src="js/config.js?v=3"></script>
+  <script src="js/calendar.js?v=2"></script>
+  <script src="js/achievements.js?v=1"></script>
+  <script src="js/api.js?v=3"></script>
+  <script src="js/pixels.js?v=3"></script>
+  <script src="js/audio.js?v=3"></script>
+  <script src="js/slides.js?v=4"></script>
+  <script src="js/app.js?v=8"></script>
+</body>
+</html>

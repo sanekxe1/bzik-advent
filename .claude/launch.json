@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "chipsy",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8765",
+        "--directory",
+        "/Users/alexandrkiryutkin/Desktop/chipsy-game"
+      ],
+      "port": 8765
+    },
+    {
+      "name": "bzik-advent",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8766",
+        "--directory",
+        "/private/tmp/claude-501/-Users-alexandrkiryutkin-Desktop/8dcf9c4e-2ca7-458a-836d-2f34584b67e8/scratchpad/serve"
+      ],
+      "port": 8766
+    }
+  ]
+}
