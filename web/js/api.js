@@ -59,6 +59,9 @@
       register: function (name, tz) { return call('register', { name: name, tz: tz }); },
       egg: function (code) { return call('egg', { code: code }); },
       mark: function (key) { return call('mark', { key: key }); },
+      tap: function (n) { return call('tap', { n: n }); },
+      track: function (name) { return call('track', { name: name }); },
+      seen: function (ids) { return call('seen', { ids: ids }); },
       door: function (n) { return call('door', { n: n }); },
       answer: function (n, a) {
         return Promise.all((a.files || []).map(function (f) { return upload(n, f); })).then(function (files) {
@@ -109,8 +112,8 @@
           meta[n] = { firstAt: a.firstAt, updatedAt: a.updatedAt, edits: a.edits || 0, textLen: (a.text || '').length,
             ideas: Ach.countIdeas(a.text), files: (a.files || []).length };
         });
-        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt, eggs: s.eggs, marks: s.marks }) : [];
-        return { user: s.user || null, now: t, doors: doors, complete: Cal.isComplete(doors), achievements: achievements };
+        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt, eggs: s.eggs, marks: s.marks, counters: s.counters, tracks: s.tracks }) : [];
+        return { user: s.user || null, now: t, doors: doors, complete: Cal.isComplete(doors), achievements: achievements, seen: s.seenAch || [] };
       });
     }
     function delay(v) { return new Promise(function (r) { setTimeout(function () { r(v); }, 150); }); }
@@ -134,6 +137,25 @@
         s.visits = [Cal.localDay(t, s.user.tz)];
         save(s);
         return snapshot(s).then(delay);
+      },
+      tap: function (n) {
+        var s = load();
+        s.counters = s.counters || {};
+        s.counters.mascot = Math.min(1000, (s.counters.mascot || 0) + Math.max(1, Math.min(20, n | 0)));
+        save(s);
+        return snapshot(s).then(delay);
+      },
+      track: function (name) {
+        var s = load();
+        s.tracks = s.tracks || [];
+        if (s.tracks.indexOf(name) < 0 && s.tracks.length < 10) { s.tracks.push(String(name).slice(0, 60)); save(s); }
+        return snapshot(s).then(delay);
+      },
+      seen: function (ids) {
+        var s = load();
+        s.seenAch = (s.seenAch || []).concat(ids.filter(function (x) { return (s.seenAch || []).indexOf(x) < 0; }));
+        save(s);
+        return Promise.resolve({ ok: true });
       },
       mark: function (key) {
         var s = load();

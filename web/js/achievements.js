@@ -1,7 +1,7 @@
 /*
  * Достижения. Считаются из данных пользователя — одинаково в браузере (тестовый
- * режим) и на сервере. Пара «пасхальных» (маскот, музыка) считается только на
- * устройстве — их передаём в extras.
+ * режим) и на сервере. Все данные, включая нажатия на маскота (counters.mascot)
+ * и прослушанные мелодии (tracks), хранятся на сервере.
  *
  * compute({ doors, answers, visits, tz, registeredAt, extras }) -> [{ id, title, desc, icon, goal, value, got }]
  *   answers: { n: { firstAt, updatedAt, edits, textLen, ideas, files } }
@@ -40,8 +40,8 @@
     { id: 'edit', title: 'перфекционист', desc: 'доработай уже отправленный ответ', icon: 'pencil', goal: 1, of: 'edits' },
     { id: 'channel', title: 'за кулисами', desc: 'подсмотри за креаторами на канале', icon: 'eye', goal: 1, of: 'channel' },
     { id: 'qr', title: 'тайный агент', desc: 'найди секретный код в одном из дней', icon: 'qr', goal: 1, of: 'eggs' },
-    { id: 'mascot', title: 'друг маскота', desc: 'потыкай маскота 10 раз', icon: 'hat', goal: 10, of: 'mascot', local: true },
-    { id: 'music', title: 'меломан', desc: 'послушай все 4 новогодние мелодии', icon: 'note', goal: 4, of: 'music', local: true },
+    { id: 'mascot', title: 'друг маскота', desc: 'потыкай маскота 10 раз', icon: 'hat', goal: 10, of: 'mascot' },
+    { id: 'music', title: 'меломан', desc: 'послушай 5 разных новогодних мелодий', icon: 'note', goal: 5, of: 'music' },
   ];
 
   function maxStreak(days) {
@@ -54,7 +54,7 @@
   function stats(d) {
     var tz = d.tz, ans = d.answers || {}, ex = d.extras || {};
     var s = { days: 0, ideas: 0, streak: maxStreak(d.visits), ontime: 0, longest: 0, early: 0, night: 0, files: 0, edits: 0,
-      mascot: ex.mascotTaps || 0, music: ex.tracksHeard || 0, eggs: Object.keys(d.eggs || {}).length,
+      mascot: (d.counters && d.counters.mascot) || ex.mascotTaps || 0, music: (d.tracks || []).length || ex.tracksHeard || 0, eggs: Object.keys(d.eggs || {}).length,
       channel: d.marks && d.marks.channel ? 1 : 0 };
     Object.keys(ans).forEach(function (k) {
       var a = ans[k], n = +k;
@@ -82,7 +82,7 @@
     var s = stats(d);
     return LIST.map(function (a) {
       var v = Math.min(a.goal, s[a.of] || 0);
-      return { id: a.id, title: a.title, desc: a.desc, icon: a.icon, goal: a.goal, value: v, got: v >= a.goal, local: !!a.local };
+      return { id: a.id, title: a.title, desc: a.desc, icon: a.icon, goal: a.goal, value: v, got: v >= a.goal };
     });
   }
 

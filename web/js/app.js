@@ -25,14 +25,29 @@
 
   document.querySelectorAll('[data-title]').forEach(function (el) { el.textContent = cfg.TITLE || 'адвент-календарь'; });
 
-  // ---------------- локальные счётчики (пасхалки для достижений) ----------------
-  var LOCAL_KEY = 'bzik-advent-local';
-  var local = { mascotTaps: 0, tracks: [] };
-  try { Object.assign(local, JSON.parse(localStorage.getItem(LOCAL_KEY)) || {}); } catch (e) {}
-  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); } catch (e) {} }
+  // ---------------- счётчики «друга маскота» и «меломана» — хранятся на сервере ----------------
+  function achGot(id) {
+    var list = (state && state.achievements) || [];
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i].got;
+    return false;
+  }
+  var tracksSent = {};
   Snd.onTrack(function (name) {
-    if (local.tracks.indexOf(name) < 0) { local.tracks.push(name); saveLocal(); checkAchievements(); }
+    if (tracksSent[name] || !state || !state.user || achGot('music')) return;
+    tracksSent[name] = true;
+    api.track(name).then(setState).catch(function () { tracksSent[name] = false; });
   });
+  // нажатия на маскота копим и отправляем пачкой через секунду тишины
+  var tapsPending = 0, tapTimer = null;
+  function countTap() {
+    if (!state || !state.user || achGot('mascot')) return;
+    tapsPending++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(function () {
+      var n = tapsPending; tapsPending = 0;
+      api.tap(n).then(setState).catch(function () {});
+    }, 1000);
+  }
 
   // ---------------- Telegram ----------------
   if (tg) {
@@ -153,7 +168,7 @@
     };
     btn.addEventListener('click', function () {
       Snd.play('hoho'); haptic();
-      local.mascotTaps++; saveLocal(); checkAchievements();
+      countTap();
       if (Math.random() < 0.5) m.cheer(); else m.wave();
       if (m.onTap) m.onTap();
     });
@@ -322,8 +337,8 @@
     var p = skipFetch && state ? Promise.resolve(state) : api.state().then(function (s) { setState(s); return s; });
     return p.then(function (s) {
       if (!s.user) {
-        // нет регистрации (впервые или прогресс сброшен) — достижения начнутся заново
-        try { localStorage.removeItem(SEEN_KEY); } catch (e) {}
+        // нет регистрации (впервые или прогресс сброшен): всё про достижения хранится на сервере и уже обнулено
+        shownAch = {}; tracksSent = {};
         showRegister(); return;
       }
       renderCalendar(s);
@@ -656,25 +671,17 @@
   $('door-back').onclick = function () { showCalendar(); };
 
   // ---------------- достижения ----------------
-  var SEEN_KEY = 'bzik-advent-ach-seen';
-  function mergedAchievements() {
-    var list = (state && state.achievements) || [];
-    return list.map(function (a) {
-      if (!a.local) return a;
-      var v = a.id === 'mascot' ? local.mascotTaps : a.id === 'music' ? local.tracks.length : a.value;
-      v = Math.min(a.goal, v);
-      return Object.assign({}, a, { value: v, got: v >= a.goal });
-    });
-  }
-  var achQueue = [], achBusy = false;
+  // все достижения считает сервер; список «уже показанных» тоже на сервере (state.seen),
+  // чтобы всплывашка не повторялась на другом телефоне или после очистки кэша
+  function mergedAchievements() { return (state && state.achievements) || []; }
+  var achQueue = [], achBusy = false, shownAch = {};
   function checkAchievements() {
     if (!state || !state.user) return;
-    var seen = [];
-    try { seen = JSON.parse(localStorage.getItem(SEEN_KEY)) || []; } catch (e) {}
+    var seen = state.seen || [], fresh = [];
     mergedAchievements().forEach(function (a) {
-      if (a.got && seen.indexOf(a.id) < 0) { seen.push(a.id); achQueue.push(a); }
+      if (a.got && seen.indexOf(a.id) < 0 && !shownAch[a.id]) { shownAch[a.id] = true; fresh.push(a.id); achQueue.push(a); }
     });
-    try { localStorage.setItem(SEEN_KEY, JSON.stringify(seen)); } catch (e) {}
+    if (fresh.length) api.seen(fresh).catch(function () {});
     if (!achBusy) nextAchPopup();
     if ($('screen-ach').classList.contains('active')) renderAchievements();
   }
@@ -718,10 +725,10 @@
   // ---------------- тестовый режим ----------------
   if (api.mode === 'mock') {
     $('debug').hidden = false;
+    $('dbg-music').onclick = function () { var n = Snd.next(); paintSound(); toast('♪ ' + n); };
     $('dbg-day').onclick = function () { api.debugShiftDay(); toast('время сдвинуто на сутки вперёд'); if (currentDoor) openDoor(currentDoor.n); else showCalendar(); };
     $('dbg-reset').onclick = function () {
       api.debugReset();
-      try { localStorage.removeItem(SEEN_KEY); localStorage.removeItem(LOCAL_KEY); } catch (e) {}
       location.reload();
     };
   }
