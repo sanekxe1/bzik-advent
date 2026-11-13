@@ -340,7 +340,7 @@
     $('user-name').textContent = s.user.name;
     var done = s.doors.filter(function (d) { return d.status === 'done'; }).length;
     $('progress').innerHTML = s.doors.map(function (d) { return '<i class="' + (d.status === 'done' ? 'on' : '') + '"></i>'; }).join('');
-    $('progress-text').textContent = 'пройдено ' + done + ' из ' + s.doors.length;
+    $('progress-text').textContent = 'пройдено ' + done + ' из ' + s.doors.length + (s.testMode ? ' · 🔓 режим проверки' : '');
     $('final').hidden = !s.complete;
     var ach = mergedAchievements();
     $('ach-btn-icon').src = Px.icons.trophy.url;
