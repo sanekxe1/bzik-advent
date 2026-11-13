@@ -318,7 +318,11 @@
     currentDoor = null;
     var p = skipFetch && state ? Promise.resolve(state) : api.state().then(function (s) { setState(s); return s; });
     return p.then(function (s) {
-      if (!s.user) { showRegister(); return; }
+      if (!s.user) {
+        // нет регистрации (впервые или прогресс сброшен) — достижения начнутся заново
+        try { localStorage.removeItem(SEEN_KEY); } catch (e) {}
+        showRegister(); return;
+      }
       renderCalendar(s);
       show('screen-calendar');
       if (!calShown) {
