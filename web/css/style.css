@@ -457,3 +457,27 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .qr-zoom-card img { width: 100%; max-width: 264px; aspect-ratio: 1; image-rendering: pixelated; }
 .qr-zoom-card p { margin: 12px 0 14px; font-size: 16px; color: var(--muted); }
 .qr-zoom-card .btn { width: 100%; }
+
+/* кнопка канала креаторов — под полем ответа */
+.btn-channel { display: flex; width: 100%; margin-top: 22px; text-decoration: none; color: var(--ink); background: var(--sel); box-shadow: 4px 4px 0 var(--sel-h); }
+.btn-channel:active { box-shadow: 1px 1px 0 var(--sel-h); }
+.btn-channel + .files-hint { text-align: center; }
+
+/* обложка: «??????» в рамке, пока подарок закрыт; заголовок вылетает из коробки */
+.s-boxed { display: grid; }
+.s-boxed > span { grid-area: 1 / 1; }
+.s-qm { letter-spacing: .08em; color: var(--muted); animation: blinkhint 1.2s steps(2) infinite; }
+.s-title { visibility: hidden; }
+.s-gc.opened .s-qm { visibility: hidden; animation: none; }
+.s-gc.opened .s-title { visibility: visible; animation: fly-in 1s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes fly-in {
+  0% { transform: translate(var(--fx, 0), var(--fy, 0)) scale(.15) rotate(-20deg); opacity: 0; }
+  15% { opacity: 1; }
+  60% { transform: translate(calc(var(--fx, 0) * .15), calc(var(--fy, 0) * .15 - 6px)) scale(1.15) rotate(4deg); }
+  100% { transform: none; }
+}
+
+/* фото на слайде: пиксельная фотография в рамке-полароиде, чуть наклонена */
+.s-photo { align-self: center; width: calc(70cqw * var(--k)); margin: -1cqw 0 4cqw; padding: 1.6cqw 1.6cqw 5cqw; background: var(--paper);
+  border: .4cqw solid var(--ink); box-shadow: 1.2cqw 1.2cqw 0 var(--sel); transform: rotate(-2deg); flex: none; }
+.s-photo img { display: block; width: 100%; image-rendering: pixelated; }

@@ -58,6 +58,7 @@
       state: function () { return call('state'); },
       register: function (name, tz) { return call('register', { name: name, tz: tz }); },
       egg: function (code) { return call('egg', { code: code }); },
+      mark: function (key) { return call('mark', { key: key }); },
       door: function (n) { return call('door', { n: n }); },
       answer: function (n, a) {
         return Promise.all((a.files || []).map(function (f) { return upload(n, f); })).then(function (files) {
@@ -108,7 +109,7 @@
           meta[n] = { firstAt: a.firstAt, updatedAt: a.updatedAt, edits: a.edits || 0, textLen: (a.text || '').length,
             ideas: Ach.countIdeas(a.text), files: (a.files || []).length };
         });
-        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt, eggs: s.eggs }) : [];
+        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt, eggs: s.eggs, marks: s.marks }) : [];
         return { user: s.user || null, now: t, doors: doors, complete: Cal.isComplete(doors), achievements: achievements };
       });
     }
@@ -132,6 +133,12 @@
         s.answers = s.answers || {};
         s.visits = [Cal.localDay(t, s.user.tz)];
         save(s);
+        return snapshot(s).then(delay);
+      },
+      mark: function (key) {
+        var s = load();
+        s.marks = s.marks || {};
+        if (!s.marks[key]) { s.marks[key] = now(s); save(s); }
         return snapshot(s).then(delay);
       },
       egg: function (code) {

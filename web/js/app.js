@@ -445,7 +445,7 @@
           '<div class="dots">' + slides.map(function () { return '<i></i>'; }).join('') + '</div>' +
           '<button class="nav next" aria-label="дальше">›</button></div>' +
       '</div>' +
-      '<div class="task"><span class="task-tag">задание</span><p class="task-text">' + inline(c.task || '') + '</p></div>' +
+      '<div class="task"><span class="task-tag">задание</span><p class="task-text">' + String(c.task || '').split('\n').map(inline).join('<br>') + '</p></div>' +
       '<span class="section-label"><span class="hl">твой ответ</span></span>' +
       '<div class="answer">' +
         (a ? '<p class="answer-status">✓ ответ сохранён — его можно изменить</p>' : '') +
@@ -457,6 +457,8 @@
           '<button class="btn btn-primary" id="send-answer">' + (a ? 'сохранить изменения' : 'отправить ответ') + '</button>' +
         '</div>' +
         '<p class="files-hint">можно прикрепить фото, pdf, word, excel, презентацию — до ' + MAX_FILES + ' файлов по ' + MAX_FILE_MB + ' мб</p>' +
+        (cfg.CHANNEL_URL ? '<a class="btn btn-channel" id="channel-btn" href="' + esc(cfg.CHANNEL_URL) + '" target="_blank" rel="noopener">👀 подсмотреть за креаторами</a>' +
+          '<p class="files-hint">видеоразборы этого задания от креаторов — в канале</p>' : '') +
       '</div>';
 
     $('answer-text').value = a ? a.text || '' : '';
@@ -470,12 +472,17 @@
     $('add-file').onclick = function () { $('file-input').click(); };
     $('file-input').onchange = function (e) { addFiles(e.target.files); e.target.value = ''; };
     $('send-answer').onclick = sendAnswer;
+    if ($('channel-btn')) $('channel-btn').onclick = openChannel;
   }
 
   function fitSlides() {
     var root = $('carousel');
     if (!root) return;
     requestAnimationFrame(function () { Sl.fit(root); });
+    // картинки (фото на слайдах) меняют высоту, когда загрузятся — подгоняем ещё раз
+    root.querySelectorAll('.slide img').forEach(function (im) {
+      if (!im.complete) im.addEventListener('load', function () { Sl.fit(root); }, { once: true });
+    });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { Sl.fit(root); });
   }
 
@@ -595,6 +602,23 @@
   }
 
   $('modal-ok').onclick = function () { $('modal').hidden = true; showCalendar(true); };
+
+  // ---------------- канал креаторов ----------------
+  function openChannel(e) {
+    e.preventDefault();
+    Snd.play('tap');
+    haptic();
+    var url = cfg.CHANNEL_URL;
+    function go() {
+      try {
+        if (tg && tg.initData && tg.openTelegramLink && /^https:\/\/t\.me\//.test(url)) tg.openTelegramLink(url);
+        else window.open(url, '_blank');
+      } catch (er) { window.open(url, '_blank'); }
+    }
+    // сначала отмечаем переход (достижение «за кулисами»), потом открываем канал — но ждём не дольше 1,5 с
+    var timer = new Promise(function (r) { setTimeout(r, 1500); });
+    Promise.race([api.mark('channel').then(setState).catch(function () {}), timer]).then(go);
+  }
 
   // ---------------- пасхалка: секретный QR-код ----------------
   function claimEgg(code) {

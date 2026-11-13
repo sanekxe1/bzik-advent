@@ -38,6 +38,7 @@
     { id: 'night', title: 'полуночник', desc: 'ответь между полуночью и 5 утра', icon: 'moon', goal: 1, of: 'night' },
     { id: 'file', title: 'с приложением', desc: 'прикрепи к ответу файл или фото', icon: 'clip', goal: 1, of: 'files' },
     { id: 'edit', title: 'перфекционист', desc: 'доработай уже отправленный ответ', icon: 'pencil', goal: 1, of: 'edits' },
+    { id: 'channel', title: 'за кулисами', desc: 'подсмотри за креаторами на канале', icon: 'eye', goal: 1, of: 'channel' },
     { id: 'qr', title: 'тайный агент', desc: 'найди секретный код в одном из дней', icon: 'qr', goal: 1, of: 'eggs' },
     { id: 'mascot', title: 'друг маскота', desc: 'потыкай маскота 10 раз', icon: 'hat', goal: 10, of: 'mascot', local: true },
     { id: 'music', title: 'меломан', desc: 'послушай все 4 новогодние мелодии', icon: 'note', goal: 4, of: 'music', local: true },
@@ -53,7 +54,8 @@
   function stats(d) {
     var tz = d.tz, ans = d.answers || {}, ex = d.extras || {};
     var s = { days: 0, ideas: 0, streak: maxStreak(d.visits), ontime: 0, longest: 0, early: 0, night: 0, files: 0, edits: 0,
-      mascot: ex.mascotTaps || 0, music: ex.tracksHeard || 0, eggs: Object.keys(d.eggs || {}).length };
+      mascot: ex.mascotTaps || 0, music: ex.tracksHeard || 0, eggs: Object.keys(d.eggs || {}).length,
+      channel: d.marks && d.marks.channel ? 1 : 0 };
     Object.keys(ans).forEach(function (k) {
       var a = ans[k], n = +k;
       s.days++;

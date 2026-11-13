@@ -239,6 +239,9 @@
     'ooooo.o.ooo', 'o...o..o..o', 'o.o.o.oo.oo', 'o...o.o...o', 'ooooo.o.o.o', '......oo...',
     'o.oo.o..o.o', '.o..oo.oo..', 'oo.o..o..oo', 'o..ooo.o.o.', 'oo.o.oo.ooo',
   ]);
+  I.eye = sprite([
+    '...ooooo...', '.oowwwwwoo.', 'owwwoooowwo', 'owwobwbowwo', 'owwwoooowwo', '.oowwwwwoo.', '...ooooo...',
+  ]);
   I.note = S.iconMusic;
   I.doc = sprite([
     'oooooo...', 'owwwwoo..', 'owwwwowo.', 'owwwwoooo', 'owkkkkkwo', 'owwwwwwwo',

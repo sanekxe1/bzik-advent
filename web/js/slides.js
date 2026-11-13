@@ -106,7 +106,8 @@
         '<img class="px s-gc-tree r" src="' + Px.tree.url + '" alt="">' +
         '<div class="s-gc-drift"></div>' +
         '<div class="s-gc-day">день ' + n + ' из 14</div>' +
-        '<div class="s-boxed">' + esc(s.title) + '</div>' +
+        // до открытия подарка в рамке «??????», заголовок прячется в коробке и вылетает из неё
+        '<div class="s-boxed"><span class="s-qm">??????</span><span class="s-title">' + esc(s.title) + '</span></div>' +
         '<button class="s-gift" type="button" aria-label="открыть подарок">' +
           '<span class="s-gift-rays"></span>' +
           '<img class="px s-gift-img" src="assets/boxes/box-' + num + '-closed.png?v=2" data-open="assets/boxes/box-' + num + '-open.png?v=2" alt="">' +
@@ -118,6 +119,8 @@
     text: function (s) {
       return '<div class="s-pad">' +
         '<h3 class="s-h">' + esc(s.heading) + '</h3>' +
+        // фото-«полароид» под заголовком (файл в assets/photos/)
+        (s.photo ? '<div class="s-photo"><img class="px" src="assets/photos/' + esc(s.photo) + '?v=1" alt=""></div>' : '') +
         '<div class="s-body' + (s.art ? ' with-art' : '') + '">' + paras(s.text) + '</div>' +
         (s.art ? '<div class="s-art s-dash-box">' + artImg(s.art) + '</div>' : '') +
         '</div>';
@@ -253,6 +256,11 @@
         var gc = btn.closest('.s-gc');
         if (gc.classList.contains('opened')) { if (onOpen) onOpen(false); return; }
         var img = btn.querySelector('img');
+        // откуда вылетает заголовок: из центра подарка в рамку
+        var title = gc.querySelector('.s-title');
+        var g = img.getBoundingClientRect(), t = title.getBoundingClientRect();
+        title.style.setProperty('--fx', Math.round((g.left + g.width / 2) - (t.left + t.width / 2)) + 'px');
+        title.style.setProperty('--fy', Math.round((g.top + g.height / 3) - (t.top + t.height / 2)) + 'px');
         img.src = img.dataset.open;
         gc.classList.add('opened');
         if (onOpen) onOpen(true);
