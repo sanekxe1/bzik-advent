@@ -3,3 +3,4 @@ content/
 server/
 .claude/
 .DS_Store
+docs/
