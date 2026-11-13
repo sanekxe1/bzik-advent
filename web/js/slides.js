@@ -117,11 +117,15 @@
       '</div>';
     },
     text: function (s) {
+      // фото-«полароид» (файл в assets/photos/); по нажатию открывается крупно.
+      // photoSide: true — фото справа от текста (для вертикальных снимков), иначе — под заголовком
+      var src = s.photo ? 'assets/photos/' + esc(s.photo) + '?v=2' : '';
+      var photo = s.photo ? '<button type="button" class="s-photo' + (s.photoSide ? ' side' : '') + '" data-zoom="' + src + '" aria-label="открыть фото">' +
+        '<img class="' + (s.photoOriginal ? 'orig' : 'px') + '" src="' + src + '" alt=""></button>' : '';
+      var body = '<div class="s-body' + (s.art ? ' with-art' : '') + '">' + paras(s.text) + '</div>';
       return '<div class="s-pad">' +
         '<h3 class="s-h">' + esc(s.heading) + '</h3>' +
-        // фото-«полароид» под заголовком (файл в assets/photos/)
-        (s.photo ? '<div class="s-photo"><img class="px" src="assets/photos/' + esc(s.photo) + '?v=1" alt=""></div>' : '') +
-        '<div class="s-body' + (s.art ? ' with-art' : '') + '">' + paras(s.text) + '</div>' +
+        (s.photo && s.photoSide ? '<div class="s-row">' + body + photo + '</div>' : photo + body) +
         (s.art ? '<div class="s-art s-dash-box">' + artImg(s.art) + '</div>' : '') +
         '</div>';
     },

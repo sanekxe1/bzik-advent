@@ -481,3 +481,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .s-photo { align-self: center; width: calc(70cqw * var(--k)); margin: -1cqw 0 4cqw; padding: 1.6cqw 1.6cqw 5cqw; background: var(--paper);
   border: .4cqw solid var(--ink); box-shadow: 1.2cqw 1.2cqw 0 var(--sel); transform: rotate(-2deg); flex: none; }
 .s-photo img { display: block; width: 100%; image-rendering: pixelated; }
+
+/* фото — кнопка: нажатие открывает крупно; side — вертикальное фото справа от текста */
+button.s-photo { display: block; font: inherit; color: inherit; cursor: zoom-in; pointer-events: auto; }
+.s-row { display: flex; gap: 4cqw; align-items: flex-start; }
+.s-row .s-body { flex: 1; min-width: 0; }
+.s-photo.side { align-self: flex-start; width: calc(36cqw * var(--k)); margin: 1cqw 0 0; padding: 1.2cqw 1.2cqw 4cqw; transform: rotate(3deg); }
+.qr-zoom-card.photo img { aspect-ratio: auto; max-width: 100%; height: auto; margin-bottom: 14px; }
+
+/* оригинальные фото (без пикселизации) */
+.s-photo img.orig, .qr-zoom-card img.orig { image-rendering: auto; }

@@ -637,16 +637,19 @@
     }).catch(function () { /* без подписи Telegram секрет не засчитывается — молчим */ });
   }
 
-  // нажатие на QR-код в слайде — показываем его крупно, чтобы было удобно сканировать
+  // нажатие на QR-код или фото в слайде — показываем крупно
   document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('.s-qr');
+    var b = e.target.closest && e.target.closest('.s-qr, [data-zoom]');
     if (!b) return;
     Snd.play('tap');
     var o = document.createElement('div');
     o.className = 'qr-zoom';
-    o.innerHTML = '<div class="qr-zoom-card"><img class="px" src="assets/qr-egg.png?v=1" alt="qr-код">' +
-      '<p>наведи камеру другого телефона — или сделай скриншот и открой его в галерее 📷</p>' +
-      '<button class="btn">закрыть</button></div>';
+    o.innerHTML = b.classList.contains('s-qr')
+      ? '<div class="qr-zoom-card"><img class="px" src="assets/qr-egg.png?v=1" alt="qr-код">' +
+        '<p>наведи камеру другого телефона — или сделай скриншот и открой его в галерее 📷</p>' +
+        '<button class="btn">закрыть</button></div>'
+      : '<div class="qr-zoom-card photo"><img class="' + (b.querySelector('img.orig') ? 'orig' : 'px') + '" src="' + b.getAttribute('data-zoom') + '" alt="">' +
+        '<button class="btn">закрыть</button></div>';
     o.onclick = function (ev) { if (ev.target === o || ev.target.tagName === 'BUTTON') o.remove(); };
     document.body.appendChild(o);
   });
