@@ -19,6 +19,9 @@
   var timerId = null;
   var currentDoor = null;  // открытый день
   var draftFiles = [];     // вложения в форме ответа: {name, type, size, url}
+  // метка секретной ссылки t.me/бот?startapp=qr (в браузере для теста — ?startapp=qr)
+  var startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || new URLSearchParams(location.search).get('startapp') || '';
+  var eggPending = startParam === 'qr';
 
   document.querySelectorAll('[data-title]').forEach(function (el) { el.textContent = cfg.TITLE || 'адвент-календарь'; });
 
@@ -325,6 +328,7 @@
       }
       renderCalendar(s);
       show('screen-calendar');
+      if (eggPending) { eggPending = false; claimEgg('qr'); }
       if (!calShown) {
         calShown = true;
         $('cal-bubble').textContent = '';
@@ -591,6 +595,37 @@
   }
 
   $('modal-ok').onclick = function () { $('modal').hidden = true; showCalendar(true); };
+
+  // ---------------- пасхалка: секретный QR-код ----------------
+  function claimEgg(code) {
+    api.egg(code).then(function (s) {
+      setState(s);
+      renderCalendar(s);
+      Snd.play('success');
+      haptic('ok');
+      $('modal-title').textContent = 'ты нашёл пасхалку! 🕵️';
+      $('modal-text').textContent = 'секрет qr-кода: квадраты в трёх углах — это «глаза» для камеры. ' +
+        'Масахиро Хара с командой изучил горы газет и листовок и выбрал соотношение чёрного и белого 1:1:3:1:1 — ' +
+        'оно почти не встречается в печати, поэтому камера никогда не путает код с картинкой.';
+      $('modal').hidden = false;
+      mascots.modal.cheer(function () { mascots.modal.cheer(); });
+      confetti();
+    }).catch(function () { /* без подписи Telegram секрет не засчитывается — молчим */ });
+  }
+
+  // нажатие на QR-код в слайде — показываем его крупно, чтобы было удобно сканировать
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.s-qr');
+    if (!b) return;
+    Snd.play('tap');
+    var o = document.createElement('div');
+    o.className = 'qr-zoom';
+    o.innerHTML = '<div class="qr-zoom-card"><img class="px" src="assets/qr-egg.png?v=1" alt="qr-код">' +
+      '<p>наведи камеру другого телефона — или сделай скриншот и открой его в галерее 📷</p>' +
+      '<button class="btn">закрыть</button></div>';
+    o.onclick = function (ev) { if (ev.target === o || ev.target.tagName === 'BUTTON') o.remove(); };
+    document.body.appendChild(o);
+  });
   $('door-back').onclick = function () { showCalendar(); };
 
   // ---------------- достижения ----------------

@@ -85,6 +85,8 @@
       var n = ('0' + m[1]).slice(-2);
       return '<img class="px" src="assets/boxes/box-' + n + '-closed.png?v=2" alt="">';
     }
+    // настоящий QR-код с секретной ссылкой — кнопка, по нажатию показывается крупно
+    if (name === 'qr') return '<button type="button" class="s-qr" aria-label="показать код крупно"><img class="px" src="assets/qr-egg.png?v=1" alt=""></button>';
     if (name === 'mascot') return '<img class="px mascot-img" data-blink src="assets/mascot.png?v=2" alt="">';
     if (ART[name]) { ART_CACHE[name] = ART_CACHE[name] || ART[name](); return '<img class="px" src="' + ART_CACHE[name] + '" alt="">'; }
     if (Px[name]) return '<img class="px" src="' + Px[name].url + '" alt="">';

@@ -57,6 +57,7 @@
       mode: 'remote',
       state: function () { return call('state'); },
       register: function (name, tz) { return call('register', { name: name, tz: tz }); },
+      egg: function (code) { return call('egg', { code: code }); },
       door: function (n) { return call('door', { n: n }); },
       answer: function (n, a) {
         return Promise.all((a.files || []).map(function (f) { return upload(n, f); })).then(function (files) {
@@ -107,7 +108,7 @@
           meta[n] = { firstAt: a.firstAt, updatedAt: a.updatedAt, edits: a.edits || 0, textLen: (a.text || '').length,
             ideas: Ach.countIdeas(a.text), files: (a.files || []).length };
         });
-        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt }) : [];
+        var achievements = s.user ? Ach.compute({ answers: meta, visits: s.visits || [], tz: tz(s), registeredAt: s.user.registeredAt, eggs: s.eggs }) : [];
         return { user: s.user || null, now: t, doors: doors, complete: Cal.isComplete(doors), achievements: achievements };
       });
     }
@@ -131,6 +132,13 @@
         s.answers = s.answers || {};
         s.visits = [Cal.localDay(t, s.user.tz)];
         save(s);
+        return snapshot(s).then(delay);
+      },
+      egg: function (code) {
+        var s = load();
+        if (code !== 'qr') return Promise.reject(new Error('секрет не найден'));
+        s.eggs = s.eggs || {};
+        if (!s.eggs[code]) { s.eggs[code] = now(s); save(s); }
         return snapshot(s).then(delay);
       },
       door: function (n) {
