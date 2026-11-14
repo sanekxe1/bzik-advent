@@ -133,21 +133,53 @@
     wait: ['завтра будет новый подарок!', 'отдыхай — идеи любят паузу', 'увидимся завтра у ёлки!'],
   };
 
-  var MASCOT_SIZE = { big: [111, 219], small: [56, 110], modal: [56, 110], nr: [74, 146] };
+  var MASCOT_SIZE = { big: [106, 219], small: [53, 110], modal: [53, 110], nr: [71, 146] };   // пропорции фигуры 452:934
+  // покадровые анимации (art/gen_mascot_seq.py): лист 10 кадров в строку, 12.5 к/с.
+  // Лист шире фигуры: SEQ_BOX — его рамка относительно фигуры idle.png (в пикселях исходника)
+  var SEQ = { hello: { src: 'assets/mascot/hello.png?v=1', n: 75 }, dance: { src: 'assets/mascot/dance.png?v=1', n: 75 } };
+  var SEQ_COLS = 10, SEQ_FPS = 12.5, SEQ_BOX = { l: 231, t: 16, w: 902, h: 960, fw: 452, fh: 934 };
+  Object.keys(SEQ).forEach(function (k) { new Image().src = SEQ[k].src; });   // прогрев кеша
+
   function Mascot(btn, size) {
-    btn.innerHTML = '<img class="m" data-blink src="assets/mascot.png?v=2" alt=""><span class="shadow"></span>';
+    btn.innerHTML = '<img class="m" data-blink src="assets/mascot/idle.png?v=1" alt=""><span class="seq"></span><span class="shadow"></span>';
     btn.style.width = size[0] + 'px';
     btn.style.height = size[1] + 'px';
+    var seqEl = btn.querySelector('.seq');
+    var sx = size[0] / SEQ_BOX.fw, sy = size[1] / SEQ_BOX.fh;
+    seqEl.style.cssText = 'left:' + (-SEQ_BOX.l * sx) + 'px;top:' + (-SEQ_BOX.t * sy) + 'px;width:' +
+      (SEQ_BOX.w * sx) + 'px;height:' + (SEQ_BOX.h * sy) + 'px';
+    var playing = null;
+    // проиграть анимацию name целиком; done — по окончании (или сразу, если движение отключено)
+    function play(name, done) {
+      var s = SEQ[name];
+      if (reduced || !s) { if (done) done(); return; }
+      if (playing) { clearInterval(playing.t); }
+      var rows = Math.ceil(s.n / SEQ_COLS), i = 0;
+      seqEl.style.backgroundImage = 'url(' + s.src + ')';
+      seqEl.style.backgroundSize = (SEQ_COLS * 100) + '% ' + (rows * 100) + '%';
+      function show(k) {
+        seqEl.style.backgroundPosition = (k % SEQ_COLS) / (SEQ_COLS - 1) * 100 + '% ' + Math.floor(k / SEQ_COLS) / (rows - 1) * 100 + '%';
+      }
+      show(0);
+      btn.classList.add('playing');
+      playing = { t: setInterval(function () {
+        if (++i < s.n) { show(i); return; }
+        clearInterval(playing.t); playing = null;
+        btn.classList.remove('playing');
+        if (done) done();
+      }, 1000 / SEQ_FPS) };
+    }
     function anim(cls, ms, done) {
-      btn.classList.remove('wave', 'jump');
+      btn.classList.remove('jump');
       void btn.offsetWidth;
       btn.classList.add(cls);
       setTimeout(function () { btn.classList.remove(cls); if (done) done(); }, ms);
     }
     var m = {
       el: btn,
-      wave: function (times, done) { anim('wave', 900, done); },
-      cheer: function (done) { anim('jump', 650, done); },
+      wave: function (done) { play('hello', done); },
+      cheer: function (done) { play('dance', done); },
+      isPlaying: function () { return !!playing; },
       // «заходит» на экран вприпрыжку из-за края
       walkIn: function (from, done) {
         if (reduced) { if (done) done(); return; }
@@ -169,7 +201,7 @@
     btn.addEventListener('click', function () {
       Snd.play('hoho'); haptic();
       countTap();
-      if (Math.random() < 0.5) m.cheer(); else m.wave();
+      if (!playing) { if (Math.random() < 0.5) m.cheer(); else m.wave(); }   // уже танцует/машет — не перебиваем
       if (m.onTap) m.onTap();
     });
     return m;
@@ -178,9 +210,9 @@
   // моргание всех маскотов
   (function blink() {
     setTimeout(function () {
-      document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot-blink.png?v=2'; });
+      document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/blink.png?v=1'; });
       setTimeout(function () {
-        document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot.png?v=2'; });
+        document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/idle.png?v=1'; });
         blink();
       }, 140);
     }, 2200 + Math.random() * 2600);
@@ -309,7 +341,7 @@
     if (regShown) return;
     regShown = true;
     $('reg-bubble').textContent = '';
-    mascots.big.walkIn('left', function () { say($('reg-bubble'), pick(PHRASES.hello), 0); });
+    mascots.big.walkIn('left', function () { say($('reg-bubble'), pick(PHRASES.hello), 0); mascots.big.wave(); });
   }
 
   $('register-form').addEventListener('submit', function (e) {
@@ -350,6 +382,7 @@
         mascots.small.walkIn('right', function () {
           var open = s.doors.filter(function (d) { return d.status === 'open'; })[0];
           say($('cal-bubble'), open ? 'привет, ' + s.user.name.split(' ')[0] + '! подарок дня ждёт' : pick(PHRASES.wait));
+          mascots.small.wave();
         });
       }
     }).catch(fail);
@@ -592,7 +625,7 @@
         ? 'ты прошёл все 14 дней. это было креативно — с наступающим!'
         : 'ответ принят. день ' + (currentDoor.n + 1) + ' откроется завтра в 00:00 по твоему времени. ответ можно изменить в любой момент.';
       $('modal').hidden = false;
-      mascots.modal.cheer(function () { mascots.modal.cheer(); });
+      mascots.modal.cheer();
       confetti();
     }).catch(function (e) {
       fail(e);
@@ -647,7 +680,7 @@
         'Масахиро Хара с командой изучил горы газет и листовок и выбрал соотношение чёрного и белого 1:1:3:1:1 — ' +
         'оно почти не встречается в печати, поэтому камера никогда не путает код с картинкой.';
       $('modal').hidden = false;
-      mascots.modal.cheer(function () { mascots.modal.cheer(); });
+      mascots.modal.cheer();
       confetti();
     }).catch(function () { /* без подписи Telegram секрет не засчитывается — молчим */ });
   }

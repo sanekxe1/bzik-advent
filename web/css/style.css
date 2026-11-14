@@ -133,6 +133,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes hopstep { from { transform: translateY(0) rotate(-3deg); } to { transform: translateY(-10px) rotate(3deg); } }
 @keyframes bob { 50% { transform: translateY(-3px); } }
 @keyframes jump { 0% { transform: translateY(0); } 40% { transform: translateY(-26px) rotate(-4deg); } 70% { transform: translateY(-8px) rotate(3deg); } 100% { transform: translateY(0); } }
+.mascot-btn .seq { position: absolute; display: none; pointer-events: none; background-repeat: no-repeat; image-rendering: pixelated; image-rendering: crisp-edges; }
+.mascot-btn.playing .seq { display: block; }
+.mascot-btn.playing .m { visibility: hidden; }
 .mascot-btn .shadow { position: absolute; left: 15%; right: 15%; bottom: -6px; height: 6px; background: rgba(20,20,20,.12); border-radius: 50%; }
 .bubble {
   position: relative; display: inline-block; max-width: 240px; padding: 8px 12px; border: 2px solid var(--ink); background: var(--paper);
@@ -157,7 +160,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .cal-header { display: flex; align-items: flex-end; gap: 10px; padding: 4px 0 6px; }
 .cal-head-text { flex: 1; min-width: 0; }
 .hello { margin: 10px 0 0; font-size: 19px; }
-.mascot-corner { position: relative; width: 56px; flex: none; display: flex; flex-direction: column; align-items: flex-end; margin-top: 96px; }
+.mascot-corner { position: relative; width: 56px; flex: none; margin-right: 10px; display: flex; flex-direction: column; align-items: flex-end; margin-top: 96px; }
 /* реплика над головой маскота (под кнопками звука); клики проходят насквозь */
 .mascot-corner .bubble { position: absolute; right: 0; bottom: calc(100% + 8px); width: max-content; max-width: 290px; z-index: 6; pointer-events: none; }
 .mascot-corner .bubble.small::after { left: auto; right: 22px; bottom: -10px; }
