@@ -136,12 +136,12 @@
   var MASCOT_SIZE = { big: [106, 219], small: [53, 110], modal: [53, 110], nr: [71, 146] };   // пропорции фигуры 452:934
   // покадровые анимации (art/gen_mascot_seq.py): лист 10 кадров в строку, 12.5 к/с.
   // Лист шире фигуры: SEQ_BOX — его рамка относительно фигуры idle.png (в пикселях исходника)
-  var SEQ = { hello: { src: 'assets/mascot/hello.png?v=1', n: 75 }, dance: { src: 'assets/mascot/dance.png?v=1', n: 75 } };
+  var SEQ = { hello: { src: 'assets/mascot/hello.png?v=2', n: 75 }, dance: { src: 'assets/mascot/dance.png?v=2', n: 75 } };
   var SEQ_COLS = 10, SEQ_FPS = 12.5, SEQ_BOX = { l: 231, t: 16, w: 902, h: 960, fw: 452, fh: 934 };
   Object.keys(SEQ).forEach(function (k) { new Image().src = SEQ[k].src; });   // прогрев кеша
 
   function Mascot(btn, size) {
-    btn.innerHTML = '<img class="m" data-blink src="assets/mascot/idle.png?v=1" alt=""><span class="seq"></span><span class="shadow"></span>';
+    btn.innerHTML = '<img class="m" data-blink src="assets/mascot/idle.png?v=2" alt=""><span class="seq"></span><span class="shadow"></span>';
     btn.style.width = size[0] + 'px';
     btn.style.height = size[1] + 'px';
     var seqEl = btn.querySelector('.seq');
@@ -210,9 +210,9 @@
   // моргание всех маскотов
   (function blink() {
     setTimeout(function () {
-      document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/blink.png?v=1'; });
+      document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/blink.png?v=2'; });
       setTimeout(function () {
-        document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/idle.png?v=1'; });
+        document.querySelectorAll('img[data-blink]').forEach(function (im) { im.src = 'assets/mascot/idle.png?v=2'; });
         blink();
       }, 140);
     }, 2200 + Math.random() * 2600);

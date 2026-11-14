@@ -4,7 +4,7 @@
 
 Пишет в web/assets/mascot/:
   idle.png, blink.png — стоит / моргнул (кадр 0 «привета»), обрезано ровно по фигуре FIG
-  hello.png, dance.png — листы кадров (палитра 32 цвета) (каждый 2-й кадр → 12.5 к/с), COLS в строке
+  hello.png, dance.png — листы кадров (палитра 16 цветов, NEAREST — края чёткие) (каждый 2-й кадр → 12.5 к/с), COLS в строке
 Кадры анимаций обрезаны рамкой BOX; в app.js лист кладётся поверх idle со сдвигом
 (BOX относительно FIG) — если меняешь рамки, поправь SEQ_BOX в app.js.
 """
@@ -20,7 +20,7 @@ STEP, COLS = 2, 10
 CW, CH = round((BOX[2] - BOX[0]) / SCALE), round((BOX[3] - BOX[1]) / SCALE)
 
 def frame(im):
-    return im.crop(BOX).resize((CW, CH), Image.LANCZOS)
+    return im.crop(BOX).resize((CW, CH), Image.NEAREST)
 
 def blink(im):
     im = im.copy(); d = ImageDraw.Draw(im)
@@ -39,14 +39,14 @@ def main(hello_dir, dance_dir):
     first = load(hello_dir, 0)
     fw, fh = round((FIG[2] - FIG[0]) / SCALE), round((FIG[3] - FIG[1]) / SCALE)
     for name, im in (("idle", first), ("blink", blink(first))):
-        im.crop(FIG).resize((fw, fh), Image.LANCZOS).quantize(32, method=Image.FASTOCTREE).save(OUT / f"{name}.png", optimize=True)
+        im.crop(FIG).resize((fw, fh), Image.NEAREST).quantize(16, method=Image.FASTOCTREE).save(OUT / f"{name}.png", optimize=True)
     for name, folder in (("hello", hello_dir), ("dance", dance_dir)):
         idx = list(range(0, 150, STEP))
         rows = (len(idx) + COLS - 1) // COLS
         sheet = Image.new("RGBA", (CW * COLS, CH * rows))
         for k, i in enumerate(idx):
             sheet.paste(frame(load(folder, i)), ((k % COLS) * CW, (k // COLS) * CH))
-        sheet.quantize(32, method=Image.FASTOCTREE).save(OUT / f"{name}.png", optimize=True)
+        sheet.quantize(16, method=Image.FASTOCTREE).save(OUT / f"{name}.png", optimize=True)
         print(name, len(idx), "кадров", sheet.size, (OUT / f"{name}.png").stat().st_size // 1024, "КБ")
     print("кадр", CW, "x", CH)
 
